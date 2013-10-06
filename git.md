@@ -103,4 +103,14 @@
 ### 查看远程仓库信息
 > git remote show origin
 
+## Git 分支
+
+### 添加分支
+> git brach new_brach
+
+### 切换分支
+> git checkout new_branch
+
+### 切换回主分支
+> git checkout master
 
