@@ -124,7 +124,7 @@ chkconfig nmb on // ???
 ```
 setting iptables /etc/ssconfig/iptables
 ```
--I INPUT 6 -m state --state NEW -m tcp -p tcp --dport 139 -j ACCEPT //接受 139 端口，通过 IP 访问
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 139 -j ACCEPT //接受 139 端口，通过 IP 访问
 service iptables restart 
 setsebool -P samba_enable_home_dirs on //开放 SELinxu samba
 smbpasswd -a student //添加 student 到 samba 数据库
