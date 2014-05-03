@@ -105,10 +105,28 @@ pasv_promiscuous=YES
 ```
 在防火墙配置内开启40000到40080端口 /etc/sysconfig/iptables
 ```
--A INPUT m state --state NEW m tcp p dport 40000:40080 j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p --dport 40000:40080 j ACCEPT
 ```
 重启iptabls和vsftpd
 ```
 service iptables restart
 service vsftpd restart
+```
+
+#### 安装Samba，设置
+安装 Samba Server
+```bash
+yum install samba
+smbd --version // check the version of installed
+chkconfig //see the config
+chkconfig smb on //Configure the samba server, it will automatically at boot time
+chkconfig nmb on // ???
+```
+setting iptables /etc/ssconfig/iptables
+```
+-I INPUT 6 -m state --state NEW -m tcp -p tcp --dport 139 -j ACCEPT //接受 139 端口，通过 IP 访问
+service iptables restart 
+setsebool -P samba_enable_home_dirs on //开放 SELinxu samba
+smbpasswd -a student //添加 student 到 samba 数据库
+service smb restart //启动 Samba Server
 ```
