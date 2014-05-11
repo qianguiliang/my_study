@@ -106,4 +106,29 @@ Vim < Bram Moolenaar
 * c /xxx ---- delete between cursor to xxx and insert
 * y /xxx ---- copy ...
 
+### 2.2 Replace
+* :s/Ember/Amber ---- replace Ember with Amber in current line
+* :%s/Ember/Amber ---- replace Ember with Amber in whole file 但是仅仅替换每行第一个出现的单词
+* :%s/Ember/Amber/g ---- replace Ember with Amber in whole file every word
+* v ---- into virtual mode
+* shift+v ---- into virtual line mode
+* % ---- in virtual mode , you can put cursor under (|[|{, then the % can select the match content
+* gv ---- select last selection
+* :s/Ember/Amber/gc ---- ask you substitue 
 
+### 2.3 Macros and Registers
+* ^G ---- Display file info
+* q ---- start macro record
+* a ---- record macro to a register
+* :reg ---- open register
+
+### 2.4 Advanced Movement
+* ^d ---- down hakf screen
+* ^u ---- up half scrren
+* ^f ---- forword screen
+* ^b ---- back screen
+* M ---- middle the screen 
+* H ---- top of the window
+* L ---- bottom of th window (last line)
+* 3L ---- 3 line to botom
+* 3H ---- 3 line to top
