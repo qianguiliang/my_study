@@ -96,28 +96,100 @@ modelBuilder.Configurations.Add(new FatherConfiguration());
 
 ### Property Attributes
 #### Length
- -Convention
-   -max (type specified by database)  
- -Data Annotation 
-   -MinLength(nn) 
-   -MaxLength(nn) 
-   -StringLength(nn)  
- -Fluent 
-   -Entity<T>.Property(t=>t.PropertyName).HasMaxLength(nn)  
+- Convention
+    - max (type specified by database)  
+- Data Annotation 
+    - MinLength(nn) 
+    - MaxLength(nn) 
+    - StringLength(nn)  
+- Fluent 
+    - Entity<T>.Property(t=>t.PropertyName).HasMaxLength(nn)  
 
-### Data Type
-Convention The default column data type is determined by the database provider you are using. For SQL Server some example default data types are: String : nvarchar(max) Integer : int Byte Array : varbinary(max) Boolean : bit  
-Data Annotation Column(TypeName=“xxx”)  
-Fluent Entity<T>.Property(t=>t.PropertyName).HasColumnType (“xxx”)
+#### Data Type
+- Convention 
+    - The default column data type is determined by the database provider you are using. For SQL Server some example default data types are: 
+        - String : nvarchar(max) 
+        - Integer : int 
+        - Byte Array : varbinary(max) 
+        - Boolean : bit  
+- Data Annotation 
+    - Column(TypeName=“xxx”)  
+- Fluent 
+    - Entity<T>.Property(t=>t.PropertyName).HasColumnType (“xxx”)
 
-### Nullability and the Required Configuration
-Convention Key Properties : not null in database
-Reference Types (String, arrays): null in the database
-Value Types (all numeric types, DateTime, bool, char) : not null in database Nullable<T> Value Types : null in database
-Data Annotation
-Required
-Fluent
-Entity<T>.Property(t=>t.PropertyName).IsRequired
+#### Nullability and the Required Configuration
+- Convention 
+    - Key Properties : not null in database
+    - Reference Types (String, arrays): null in the database
+    - Value Types (all numeric types, DateTime, bool, char) : not null in database 
+    - Nullable<T> Value Types : null in database
+- Data Annotation
+    - Required
+- Fluent
+    - Entity<T>.Property(t=>t.PropertyName).IsRequired
+
+#### Mapping Keys
+- Convention
+    - Properties named Id
+    - Properties named [TypeName] + Id
+- Data Annotation
+    - Key
+- Fluent
+    - Entity<T>.HasKey(t=>t.PropertyName)
+
+#### Configuring Database-Generated Properties
+- Convention
+    - Integer keys: Identity
+- Data Annotation
+    - DatabaseGenerated(DatabaseGeneratedOption)
+- Fluent
+    - Entity<T>.Property(t=>t.PropertyName).HasDatabaseGeneratedOption(DatabaseGeneratedOption)
+
+#### Configuring TimeStamp/RowVersion Fields
+- Convention
+    - None
+- Data Annotation
+    - TimeStamp
+- Fluent
+    - Entity<T>.Property(t=>t.PropertyName).IsRowVersion()
+```c#
+[Timestamp]
+public byte[] RowVersion { get; set; }
+```
+
+#### Configuring Non-Timestamp Fields for Concurrency
+- Convention
+    - None
+- Data Annotation
+    - ConcurrencyCheck
+- Fluent
+    - Entity<T>.Property(t=>t.PropertyName).IsConcurrencyToken()
+```c#
+[ConcurrencyCheck]
+public int SocialSecurityNumber { get; set; }
+...
+Property(p => p.SocialSecurityNumber).IsConcurrencyToken();
+```
+
+#### Mapping to Non-Unicode Database Types
+- Convention
+    - All strings map to Unicode-encoded database types
+- Data Annotation
+    unavailable
+- Fluent
+    - Entity<T>.Property(t=>t.PropertyName).IsUnicode(boolean)
+```c#
+Property(l => l.Owner).IsUnicode(false);
+```
+
+#### Affecting the Precision and Scale of Decimals
+- Convention
+    - Decimals are 18, 2
+- Data Annotation
+    - unavailable
+- Fluent
+    - Entity<T>.Property(t=>t.PropertyName).HasPrecision(n,n)
+
 ## Database Initialization
 ```c#
 static void Main(string[] args)
