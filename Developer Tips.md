@@ -9,3 +9,9 @@ ASP.NET Web API
 var cors = new EnableCorsAttribute("*", "*", "*");
 config.EnableCors(cors);
 ```
+
+
+AngularJS
+---------
+### Filter: Format Date String
+* {{item.Fabushijian | date: "yyyy年mm月dd日"}}
