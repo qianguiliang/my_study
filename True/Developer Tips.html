@@ -1,0 +1,14 @@
+﻿<h1>Developer Tips</h1>
+
+<h2>ASP.NET Web API</h2>
+
+<h3>Cors</h3>
+
+<ul>
+<li>Install-Package Microsoft.AspNet.WebApi.Cors </li>
+<li>WebApiConfig.cs<br/>
+<code>CSharp<br/>
+var cors = new EnableCorsAttribute("*", "*", "*");<br/>
+config.EnableCors(cors);<br/>
+</code></li>
+</ul>
