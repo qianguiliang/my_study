@@ -41,10 +41,10 @@ Express Web Application Development
 
 ### Express 的组成
 * application 对象
-```JavaScript
-var express = require(‘express’);
-var app = express();
-```
+    ```JavaScript
+    var express = require(‘express’);
+    var app = express();
+    ```
 * Request 对象
 * Response 对象
 
@@ -52,55 +52,55 @@ var app = express();
 * 异步 JS
 * Node 模块
     * MyModule.js
-    ```
-    exports.name = ‘hello’;
-    exports.sayHello = function() {}
-    ```
+        ```
+        exports.name = ‘hello’;
+        exports.sayHello = function() {}
+        ```
     * app.js
-    ```
-    var myModule = require(‘myModule’);
-    myModule.sayHello();
-    ```
+        ```
+        var myModule = require(‘myModule’);
+        myModule.sayHello();
+        ```
     * 或者
-    ```
-    module.exports = {
-      name: ‘Hello’,
-      sayHello: function() {}
-    }
-    ```
+        ```
+        module.exports = {
+          name: ‘Hello’,
+          sayHello: function() {}
+        }
+        ```
     * 或者
-    ```
-    module.exports = function(x) {
-      …
-    }
-    ```
+        ```
+        module.exports = function(x) {
+          …
+        }
+        ```
 * Express 应用就是 Node 模块
 * 中间件
-```
-app.use(function(req, res, next) {
-  console.log(‘Request from: ‘ + req.ip);
-  next();
-};
-```
+    ```
+    app.use(function(req, res, next) {
+      console.log(‘Request from: ‘ + req.ip);
+      next();
+    };
+    ```
 
-```
-forbidder.js
-module.exports = function(forbidden_day) {
-  var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', ‘Thursday', 'Friday', 'Saturday'];
-  return function(req, res, next) {
-    var day = new Date().getDay();
-    if (days[day] === forbidden_day) {
-      res.send('No visitors allowed on ' + forbidden_day + 's!');
-    } else {
-      next(); 
-    }
-  } 
-};
-
-app.js
-var forbidder = require(‘./forbidder.js’);
-app.use(forbidder('Wednesday'));
-```
+    ```
+    forbidder.js
+    module.exports = function(forbidden_day) {
+      var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', ‘Thursday', 'Friday', 'Saturday'];
+      return function(req, res, next) {
+        var day = new Date().getDay();
+        if (days[day] === forbidden_day) {
+          res.send('No visitors allowed on ' + forbidden_day + 's!');
+        } else {
+          next(); 
+        }
+      } 
+    };
+    
+    app.js
+    var forbidder = require(‘./forbidder.js’);
+    app.use(forbidder('Wednesday'));
+    ```
 * Request Flow
     * 一个 Http Request 穿过一系列的 Express 中间件，直到一个中间件或者路由处理它，并返回 Http Response
     * http request -> favicon -> logger -> bodyParser -> methodOverride -> cookieParser -> session -> router -> http response
@@ -125,25 +125,25 @@ app.use(forbidder('Wednesday'));
     app.listen(3000);
     ```
     * 分离路由处理
-    ```
-    routes.js
-    module.exports = function(app) {
-      app.get('/', function(req, res) {
-         res.send('Welcome!');
-      });
-      app.get('/hello.text', function(req, res) {
-         res.send('Hola!');
-      });
-      app.get('/contact', function(req, res) {
-         res.render('contact');
-      });
-    }
-    
-    app.js
-    var express = require(‘express’);
-    var app = express();
-    var routes = require(‘./routes.js’)(app);
-    app.listen(3000);
-    ```
+        ```
+        routes.js
+        module.exports = function(app) {
+          app.get('/', function(req, res) {
+             res.send('Welcome!');
+          });
+          app.get('/hello.text', function(req, res) {
+             res.send('Hola!');
+          });
+          app.get('/contact', function(req, res) {
+             res.render('contact');
+          });
+        }
+        
+        app.js
+        var express = require(‘express’);
+        var app = express();
+        var routes = require(‘./routes.js’)(app);
+        app.listen(3000);
+        ```
     
 
