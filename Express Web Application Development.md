@@ -83,3 +83,67 @@ app.use(function(req, res, next) {
 };
 ```
 
+```
+forbidder.js
+module.exports = function(forbidden_day) {
+  var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', ‘Thursday', 'Friday', 'Saturday'];
+  return function(req, res, next) {
+    var day = new Date().getDay();
+    if (days[day] === forbidden_day) {
+      res.send('No visitors allowed on ' + forbidden_day + 's!');
+    } else {
+      next(); 
+    }
+  } 
+};
+
+app.js
+var forbidder = require(‘./forbidder.js’);
+app.use(forbidder('Wednesday'));
+```
+* Request Flow
+    * 一个 Http Request 穿过一系列的 Express 中间件，直到一个中间件或者路由处理它，并返回 Http Response
+    * http request -> favicon -> logger -> bodyParser -> methodOverride -> cookieParser -> session -> router -> http response
+* Router 中间件
+    * 可以处理灵活的 URI，通过不同的 URI 来让不同的处理函数来进行处理
+    * http request
+        * / -> 显示主页
+        * /hello -> Print 'hello'
+        * /download/:file_id -> 发送文件
+    ```
+    var express = require('express');
+    var app = express();
+    app.get('/', function(req, res) {
+         res.send('Welcome!');
+    });
+    app.get('/hello.text', function(req, res) {
+         res.send('Hola!');
+    });
+    app.get('/contact', function(req, res) {
+         res.render('contact');
+    });
+    app.listen(3000);
+    ```
+    * 分离路由处理
+    ```
+    routes.js
+    module.exports = function(app) {
+      app.get('/', function(req, res) {
+         res.send('Welcome!');
+      });
+      app.get('/hello.text', function(req, res) {
+         res.send('Hola!');
+      });
+      app.get('/contact', function(req, res) {
+         res.render('contact');
+      });
+    }
+    
+    app.js
+    var express = require(‘express’);
+    var app = express();
+    var routes = require(‘./routes.js’)(app);
+    app.listen(3000);
+    ```
+    
+
