@@ -51,29 +51,24 @@ Express Web Application Development
 ### Express 中的概念
 * 异步 JS
 * Node 模块
-    * MyModule.js
-        ```
+    ```
+    MyModule.js
         exports.name = ‘hello’;
         exports.sayHello = function() {}
-        ```
-    * app.js
-        ```
+        
+    app.js
         var myModule = require(‘myModule’);
         myModule.sayHello();
-        ```
-    * 或者
-        ```
+    或者
         module.exports = {
           name: ‘Hello’,
           sayHello: function() {}
         }
-        ```
-    * 或者
-        ```
+    或者
         module.exports = function(x) {
           …
         }
-        ```
+    ```
 * Express 应用就是 Node 模块
 * 中间件
     ```
