@@ -41,6 +41,7 @@ Express Web Application Development
 
 ### Express 的组成
 * application 对象
+
     ```JavaScript
     var express = require(‘express’);
     var app = express();
@@ -51,6 +52,7 @@ Express Web Application Development
 ### Express 中的概念
 * 异步 JS
 * Node 模块
+
     ```
     MyModule.js
         exports.name = ‘hello’;
@@ -71,31 +73,33 @@ Express Web Application Development
     ```
 * Express 应用就是 Node 模块
 * 中间件
+
     ```
     app.use(function(req, res, next) {
       console.log(‘Request from: ‘ + req.ip);
       next();
     };
     ```
-
-    ```
-    forbidder.js
-    module.exports = function(forbidden_day) {
-      var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', ‘Thursday', 'Friday', 'Saturday'];
-      return function(req, res, next) {
-        var day = new Date().getDay();
-        if (days[day] === forbidden_day) {
-          res.send('No visitors allowed on ' + forbidden_day + 's!');
-        } else {
-          next(); 
-        }
-      } 
-    };
+    * Demo
     
-    app.js
-    var forbidder = require(‘./forbidder.js’);
-    app.use(forbidder('Wednesday'));
-    ```
+        ```
+        forbidder.js
+            module.exports = function(forbidden_day) {
+              var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', ‘Thursday', 'Friday', 'Saturday'];
+              return function(req, res, next) {
+                var day = new Date().getDay();
+                if (days[day] === forbidden_day) {
+                  res.send('No visitors allowed on ' + forbidden_day + 's!');
+                } else {
+                  next(); 
+                }
+              } 
+            };
+        
+        app.js
+            var forbidder = require(‘./forbidder.js’);
+            app.use(forbidder('Wednesday'));
+        ```
 * Request Flow
     * 一个 Http Request 穿过一系列的 Express 中间件，直到一个中间件或者路由处理它，并返回 Http Response
     * http request -> favicon -> logger -> bodyParser -> methodOverride -> cookieParser -> session -> router -> http response
@@ -105,6 +109,7 @@ Express Web Application Development
         * / -> 显示主页
         * /hello -> Print 'hello'
         * /download/:file_id -> 发送文件
+        
     ```
     var express = require('express');
     var app = express();
@@ -120,6 +125,7 @@ Express Web Application Development
     app.listen(3000);
     ```
     * 分离路由处理
+    
         ```
         routes.js
         module.exports = function(app) {
@@ -140,5 +146,45 @@ Express Web Application Development
         var routes = require(‘./routes.js’)(app);
         app.listen(3000);
         ```
-    
 
+开发 Express Web 应用
+--------------------
+* 简单的 Express Web App
+* 自动生成 Express Web App
+* 为 Express  添加中间件
+* 为 Express 添加 Node 模块
+* 记录日志
+* 使用配置文件
+* 设置获取应用选项
+* 不同环境下的 Express
+
+### 第一个 Express App
+* 建立项目目录
+
+    ```
+    mkdir express-app
+    cd express-app
+    ```
+* Express manifest file
+    * package.json
+    
+        ```
+        npm install express --save
+        ```
+* 基本的 Express App
+
+    ```
+    /**
+     *
+     * Created by zhangjinglin on 14-7-15.
+     */
+    var express = require('express');
+    var app = express();
+    
+    app.get('/', function(req, res) {
+        res.send('hello, Express!\n');
+    });
+    
+    app.listen(3000);
+    ```
+    
