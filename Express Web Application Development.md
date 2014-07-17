@@ -615,9 +615,227 @@ Express Web Application Development
         var routes = require('./appRoutes.js')(app);
     ```
      
+服务器响应
+--------
+* HTTP Response 入门
+* Express 中的 HTTP Response
+
+### HTTP Response 入门
+* HTTP Server 对一个 request 的响应叫做 HTTP Response 消息，包含状态码、头部和可选的关联数据（技术上称作消息体）
+* 消息体可以是普通文本，HTML，图像，下载文件等等。
+
+#### HTTP status code 状态码
+* 1xx Informational 信息
+* 2xx Success 成功
+* 3xx Redirect 重定向
+* 4xx Client error 客户端错误
+    * 404 Not found 没找到
+* 5xx Server Error 服务器错误
     
+#### HTTP response header 响应头
+* key-value pair 键值对，对普通用户不可见
+
+    ```
+    X-Powered-By: Express
+    Accept-Ranges: bytes
+    ETag: "819254-1356021445000"
+    Date: Tus, 17 Jul 2014 21:19:05 GMT
+    Cache-Control: public, max-age=0
+    Last-Modified: Thu, 22 Dec 2012 16:37:25 GMT
+    Content-Type: image/gif
+    Content-Length: 819254
+    Connection: keep-alive
+    ```
     
+#### Media types 媒体类型
+* 描述了是什么类型的数据, 媒体类型也被称为 MIME Type 或者 Content Type
+    * text/html
+    * multipart/form-data
+    * text/plain
+
+### Express 中的 HTTP Response
+* res.send
+* res.json
+* res.jsonp
+* res.sendfile
+* res.download
+* res.render
+* res.redirect
+* 如果上述的任一方法都不调用，request 将等待到超时位为止
+* 多个方法调用，只有第一个执行
+
+    ```
+    app.get('/', function(req, res) {
+         res.send('welcome');
+    });
     
+    检查响应头
+    ```
+ 
+#### 设置 HTTP 状态码
+* res.status
+
+    ```
+    app.get('/', function(req, res) {
+         res.status(404); // 如果不设置，Express 将发送 200
+         res.send('forced 404');
+    });
+    
+    app.get('/', function(req, res) {
+         res.status(500);
+         res.send('forced 500');
+    });
+    
+    app.get('/', function(req, res) {
+         res.status(404).send('not found');
+    });
+    ```
+
+* res.send() 等方法，无需描述状态码，默认发送 200
+* res.send(404), 单独的数字被认为是状态码
+* res.send(404, 'not found') 也可以
+
+#### 设置 HTTP 头
+* res.set(name, value)
+
+    ```
+    app.get('/', function(req, res) {
+         // status is optional, it defaults to 200
+         res.status(200);
+         res.set('Content-Type', 'text/plain; charset=us-ascii');
+         res.set('X-Secret-Message', 'not really secret');
+         res.set('X-Test', 'OK');
+         res.send('welcome');
+    });
+    
+    app.get('/', function(req, res) {
+         res.set({
+           'Content-Type': 'text/plain; charset=us-ascii',
+           'X-Secret-Message': 'not really secret',
+           'X-Test': 'OK'
+         });
+         res.send('welcome');
+       });
+    
+#### 发送数据
+* 普通文本
+
+    ```
+    app.get('/', function(req, res) {
+        res.set('Content-Type', 'text/plain');
+        res.send('<h1>welcome</h1>');
+    });
+    ```
+    
+* HTML
+
+    ```
+    app.get('/', function(req, res) {
+         res.send('<h1>welcome</h1>');
+    });
+    
+    res.render('index', {title:'Express'});
+    ```
+    
+* json
+
+    ```
+    app.get('/', function(req, res) {
+         res.json({message: 'welcome'});
+    });
+    
+    res.json(404, {error: 'not found'});
+    ```
+       
+* jsonp JSON with Padding
+   
+    ```
+    app.get('/', function(req, res) {
+         res.jsonp({message: 'welcome'});
+    });
+    ```
+
+* 普通文件
+
+    ```
+    app.use(express.static('./content'));
+    ```
+    
+* 程序化普通文件
+    * res.sendfile() 与浏览器请求普通文件的方式一样，Content-Type 自动依据文件扩展名设定
+        
+        ```
+        app.get('/file', function(req, res) {
+             res.sendfile('./secret-file.png', function(err) {
+               if (err) { condole.log(err); }
+               else { console.log('file sent'); }
+             });
+        });
+        
+        app.get('/file.html', function(req, res) {
+             console.log('HTML file is an image?');
+             res.sendfile('./secret-file.png');
+         });
+        ```
+        
+    * res.download() 通知浏览器下载而不是渲染它
+    
+        ```
+        app.get('/download', function(req, res) {
+             res.download('./secret-file.png', 'open-secret.png', function(err) {
+               if (err) { condole.log(err); }
+               else { console.log('file downloaded'); }
+             });
+        });
+        ```
+      
+* 内容协商
+    * 是描述用户代理能够处理的数据类型的一种机制
+    * 用户代理在 HTTP request 头部添加 accept 标识
+    * Express 使用 res.format() 处理内容协商
+    
+        ```
+        app.get('/', function(req, res) {
+             res.format({
+               'text/plain': function() {
+                 res.send('welcome');
+                },
+               'text/html': function() {
+                 res.send('<b>welcome</b>');
+               },
+            
+               'application/json': function() {
+                 res.json({ message: 'welcome' });
+               },
+              
+               'default': function() {
+                 res.send(406, 'Not Acceptable');
+               } 
+             });
+        });
+        
+        res.format({
+             text: function() {
+               res.send('welcome');
+             },
+             html: function() {
+               res.send('<b>welcome</b>');
+             },
+             json: function() {
+               res.json({ message: 'welcome' });
+             },
+             default: function() {
+               res.send(406, 'Not Acceptable');
+             }
+        });
+        ```
+        
+* 重定向请求
+    * res.redirect()
+      
+
+   
+
     
     
         
