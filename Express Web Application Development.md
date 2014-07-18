@@ -614,6 +614,64 @@ Express Web Application Development
         var app = ...
         var routes = require('./appRoutes.js')(app);
     ```
+
+* Express 4
+    * app.route
+        
+        ```
+        app.route('/people')
+            .get(function ...)
+            .post(function ...)
+        ```
+        
+    * Express Router
+        
+        ```
+        var router = express.Router()
+        
+        // http://localhost:3000
+        router.get('/', function(req, res) {...})
+        // http://localhost:3000/about
+        router.get('/about', function(req, res) {...})
+        
+        app.use('/', router);
+        // app.use('/app', router);
+        // http://localhost:3000/app
+        // http://localhost:3000/app/about
+        ```
+     
+    * 路由中间件 router.use()
+        * 在 request 处理之前，例如认证，记录日志
+            
+            ```
+            var router = express.Router()
+            
+            router.use(function(req, res, next) {
+                console.log(req.method, req.url);
+                next()
+            }
+
+            router.get('/', function(req, res) {...})
+            router.get('/about', function(req, res) {...})
+            
+            app.use('/', router);
+            ```
+    
+    * 路由参数中间件
+    
+        ```
+        var router = express.Router()
+        
+        router.param('name', function(req, res, next, name) {
+            // 可以对 name 参数进行处理，在 RESTful API 中，可以验证 token
+            next()
+        })
+        
+        router.get('/hello/:name', function(req, res) {
+            res.send('hello' + req.params.name)
+        })
+        
+        app.use('/', router);
      
 服务器响应
 --------
@@ -833,11 +891,295 @@ Express Web Application Development
 * 重定向请求
     * res.redirect()
       
-
+Froms，Cookies， Sessions
+------------------------
+* 使用 Form 提交数据
+* 命名字段的数据
+* 使用 Cookies 存储数据
+* 使用 Session 存储数据
    
 
-    
-    
+### 使用 forms 提交数据
+* GET forms 使用 HTTP GET 方法提交数据，数据包含在查询字符串中
+* POST form 使用 HTTP POST 方法提交数据， 数据包含在 HTTP Request body 中
+    * POST form 可以有两种变量：application/x-www-form-urlencoded multiform/form-data
+        * forms 使用 urlencoded 字符串发送数据，类似 GET query 字符串，只不过数据包含在 HTTP body 中
+        * 第二种用于发送大量数据，一般用于文件上传
         
+#### 处理 GET 提交
+* 使用 req.query.xxx 获取参数，或者 req.query['first-name']
+    ```
+    doctype html
+    html
+      head
+        title #{title}
+      body
+        h1= title
+        p 请输入要查找的信息
+    
+        form(action='/search-result', method='get')
+          label 关键字：
+          input(type='text', name='name')
+          input(type='hidden', name='source', value='web')
+          input(type='submit', value='搜索')
+          
+    var express = require('express');
+    var app = express();
+    
+    app.set('view engine', 'jade');
+    app.set('views', './views');
+    
+    app.get('/', function(req, res) {
+      res.render('index', {title: '主页'});
+    });
+    
+    app.get('/search-result', function(req, res) {
+      var name = req.query.name;
+      var source = req.query.source;
+      res.send(name + ' : ' + source);
+    })
+    
+    app.listen(3000);
+    ```
+    
+* 多选框处理
+
+    ```
+    doctype html
+    html
+      head
+        title #{title}
+      body
+        h1 #{title}
+        p Select the skills to search for.
+    
+        form(action='/skills-search-result', method='get')
+          h3 Skills
+          ul
+          li
+            input(type='checkbox', name='skills', value='Nunchucks')
+            label Nunchucks
+          li
+            input(type='checkbox', name='skills', value='Hacking')
+            label Hacking
+          li
+            input(type='checkbox', name='skills', value='Dancing')
+            label Dancing
+          li
+            input(type='checkbox', name='skills', value='Shooting')
+            label Shooting
+          input(type='submit', value='Search')
+    
+    app.get('/skills', function(req, res) {
+      res.render('skills', '技能');
+    });      
+    app.get('/skills-search-result', function(req, res) {
+      var skills = req.query.skills;
+      res.json(skills);
+    });
+    ```
+    
+#### 处理 POST 提交
+* Enable POST 数据解析
+    
+    ```
+    npm install body-parser
+    
+    doctype html
+    html
+      head
+        title #{title}
+      body
+        h1 #{title}
+        p Enter your name and email address to become a member.
+        form(action='/login', method='post')
+          div
+            label Name
+              input(type='text', name='name')
+          div
+            label Email
+            input(type='text', name='email')
+          div
+            input(type='submit')
+            
+    var express = require('express');
+    var app = express();
+    
+    var bodyParser = require('body-parser');
+    
+    app.use(bodyParser.urlencoded());
+    app.use(bodyParser.json());
+    
+    app.set('view engine', 'jade');
+    app.set('views', './views');
+    
+    app.get('/', function(req, res) {
+      res.render('index', {title: '主页'});
+    });
+    
+    app.get('/search-result', function(req, res) {
+      var name = req.query.name;
+      var source = req.query.source;
+      res.send(name + ' : ' + source);
+    });
+    
+    app.get('/skills', function(req, res) {
+      res.render('skills', '技能');
+    });
+    
+    app.get('/skills-search-result', function(req, res) {
+      var skills = req.query.skills;
+      res.json(skills);
+    });
+    
+    app.route('/login')
+      .get(function(req, res) {
+        res.render('login', {title: '登录'})
+      })
+      .post(function(req, res) {
+        var name = req.body.name;
+        var email = req.body.email;
+        res.json(req.body);
+      })
+    
+    app.listen(3000);
+    ```
+    
+* 处理文件上传
+
+    ```
+    npm install multer
+    
+    doctype html
+    html
+      head
+        title #{title}
+      body
+        h1 #{title}
+        p Enter your name and email address to become a member.
+        form(action='/login', method='post', enctype='multipart/form-data')
+          div
+            label Name
+              input(type='text', name='name')
+          div
+            label Email
+            input(type='text', name='email')
+          div
+            label Profile Image
+            input(type='file', name='profile_image')
+            //input(type='file', name='profile_image')
+          div
+            input(type='submit')
+    
+    var express = require('express');
+    var app = express();
+    
+    var bodyParser = require('body-parser');
+    
+    app.use(bodyParser.urlencoded({extended: false}));
+    app.use(bodyParser.json());
+    
+    var multer = require('multer')
+    app.use(multer({dest: './uploads'}))
+    
+    app.set('view engine', 'jade');
+    app.set('views', './views');
+    
+    app.get('/', function(req, res) {
+      res.render('index', {title: '主页'});
+    });
+    
+    app.get('/search-result', function(req, res) {
+      var name = req.query.name;
+      var source = req.query.source;
+      res.send(name + ' : ' + source);
+    });
+    
+    app.get('/skills', function(req, res) {
+      res.render('skills', '技能');
+    });
+    
+    app.get('/skills-search-result', function(req, res) {
+      var skills = req.query.skills;
+      res.json(skills);
+    });
+    
+    app.route('/login')
+      .get(function(req, res) {
+        res.render('login', {title: '登录'})
+      })
+      .post(function(req, res) {
+        var name = req.body.name;
+        var email = req.body.email;
+        console.log(req.files);
+        res.json({body: req.body, files: req.files});
+      })
+    
+    app.listen(3000);       
+    ```
+    
+* 提交方法覆盖
+
+    ```
+    npm install method-override
+    
+    var methodOverride = require('method-override')
+    
+    app.use(methodOverride('_method'))
+    // app.use(methodOverride('X-HTTP-Method-Override'))
+    // client -----
+    // xhr.open('post', '/resource', true)
+    // xhr.setRequestHeader('X-HTTP-Method-Override', 'DELETE')
+    
+    <form method="POST" action="/resource?_method=DELETE">
+    // input(type='hidden', name='_method', value='put')
+      <button type="submit">Delete resource</button>
+    </form>
+    
+#### 命名字段数据
+* /user/:id
+* 读取数据
+
+    ```
+    req.params.id
+    
+    /file/:name.:ext
+    req.params.name
+    req.params.ext
+    
+    /route/:from-:to
+    req.params.from
+    req.params.to
+    
+#### 使用 Cookies 存取数据
+* Cookies 是网站的信息，但是存储在用户浏览器中。
+* Web Server 可以建立自己的 Cookies，并修改它，不能存取其他网站的数据
+    
+    ```
+    npm install cookie-parser
+    ```
+
+* 建立 Cookies
+    
+    ```
+    var cookieParser = require('cookie-parser')
+    app.use(cookieParser())
+    
+    app.get('/count', function(req, res) {
+      var count = req.cookies.count || 0
+      count++
+      res.cookie('count', count)
+      res.json({Count: count})
+    })
+    ```
+
+* 删除 Cookies
+
+    ```
+    res.cookie('count')
+    ```
+    
+#### 使用 Session 存取数据
+* Cookies 可以存储在客户端，但用户可能关闭 Cookies，Session 是存储在服务器端的会话数据。
 
     
