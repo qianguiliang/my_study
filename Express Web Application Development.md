@@ -1172,6 +1172,40 @@ Froms，Cookies， Sessions
       res.json({Count: count})
     })
     ```
+   
+* res.cookie() 参数
+    * domain 域名
+    * path 缺省 /
+    * secure 标记 cookie 仅用于 HTTPS
+    * expires 超期时间，默认为0，会话 cookie
+    * maxAge 当前时间的毫秒数，超期时间的便捷方式
+    * httpOnly
+    * signed cookie 是否签名，签名后除非作废，否则不能修改
+    
+        ```
+        res.cookie('count', count, {
+            path: '/counter',
+            maxAge: 2000
+        })
+        ```
+        
+    * 确保在调用 res.send() 或者 res.render() 之前建立 cookie 
+
+* 通过 req.cookies 读取本域和路径合法的 cookie
+
+* Session cookies 会话 cookie 仅存在浏览器会话中，关闭浏览器 cookie 将失效，没有描述 expires 的 cookie 就是一个会话 cookie
+
+* 签名 cookies：带有附加的签名，签名利用 secret 字符串生产，你需要自己描述。
+
+    ```
+    app.use(cookieParser('S3@4%'))
+    
+    // 签名 cookie 在特殊的 signedCookies 中，别犯错
+    
+    var count = req.signedCookies.count || 0
+    count++
+    res.cookie('count', count, {signed: true})
+    ```
 
 * 删除 Cookies
 
@@ -1181,5 +1215,76 @@ Froms，Cookies， Sessions
     
 #### 使用 Session 存取数据
 * Cookies 可以存储在客户端，但用户可能关闭 Cookies，Session 是存储在服务器端的会话数据。
+* session 不仅仅可以替换 cookie，session api 可以标识用户会话
+* Express 中两种方式实现 session，在 req.session 中
+    * 利用 cookie
+    * 使用后台数据存储
+    
+##### 基于 Cookie 的 session
+    
+    ```
+    npm install cookie-session
+    
+    var express = require('express')
+    var app = express()
+    
+    var cookieSession = require('cookie-session')
+    app.use(cookieSession({secret: '03@5*'}))
+    
+    app.get('/count', function(req, res) {
+      var n = req.session.count || 0
+      req.session.count = ++n
+      res.json({Count: n})
+    })
+    
+    app.listen(3000)
+    ```
+    
+##### 基于 Session 存储的 session
+* cookie session 工作于简单的数据，不能用于复杂大量与敏感（客户端可见）的数据。
+* session store 完全工作于后端，用户不可见
+
+    ```
+    npm install express-session
+    
+    var express = require('express')
+    var app = express()
+    
+    var session = require('express-session')
+    app.use(session({secret: '1@3$5', resave: true, saveUninitialized: true}))
+    
+    app.get('/', function(req, res) {
+      var n = req.session.views || 0
+      req.session.views = ++n
+      res.json({Views: n})
+    })
+    
+    app.listen(3000)
+    
+##### 基于数据库的 session
+* connect-mongo
+* connect-redis
+
+##### Session 变量
+* Session 变量对每个用户来说都是独立的，存储在session store 中
+
+    ```
+    req.session.name = 'zjl'
+    req.session['job'] = 'professor'
+    
+    var name = req.session.name
+    
+    delete req.session.job
+    
+    //cookie-base
+    delete req.session
+    // or
+    req.session = null
+    
+    // session store-base
+    req.session.destroy()
+    
+    
+    
 
     
