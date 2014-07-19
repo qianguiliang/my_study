@@ -1284,7 +1284,19 @@ Froms，Cookies， Sessions
     // session store-base
     req.session.destroy()
     
+生产环境下的 Express
+------------------
+### 什么是生产环境
+* Express 查找 NODE_ENV 环境变量来决定，如果没定义，进入 development 模式
+* 生产模式下的不同
+    * Jade view 模板会被 Cached
+    * css file cached，只有 源 stylus 改变，才重新编译 css
+    * 更少的输出信息
+    * MemoryStore（express session 缺省存储）会警告
     
+### 仿真生产环境
+* NODE_ENV=production node app
+
     
 
     
