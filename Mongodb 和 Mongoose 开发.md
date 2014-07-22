@@ -616,7 +616,626 @@ Mongoose 入门
     });
     ```
     
+Schemas & Models
+----------------
+### Schema 简介
 
+* schema 描述数据结构的一种方法
+
+    ```
+    var userSchema = new mongoose.Schema({
+         name: String,
+         email: String,
+         createdOn: Date
+    });
+    ```
+
+### schema 中允许的数据类型
+* String
+    * utf-8
+* Number
+* Date
+* Boolean
+* Buffer
+    * 用于存储二进制信息
+* ObjectId
+* Mixed
+    * 可以包含任意类型
+    
+        ```
+        vardjSchema= new mongoose.Schema({
+          mixedUp: {}
+        });
+        vardjSchema= new mongoose.Schema({
+          mixedUp: Schema.Types.Mixed
+        });
+        ```
+    
+    * 对此类型的修改，mongoose 不能自动检测并保存
+    
+        ```
+        dj.mixedUp = { valueone: "a new value" };
+        dj.markModified('mixedUp');
+        dj.save()
+        ```
+         
+* Array
+    * 空数组被认为是 mixed
+    
+
+### 什么时候定义 Schema
+* schema 应该在引入 mongoose 之后
+
+### 定义 schema
+* 定义基本结构
+
+    ```
+    var userSchema = new mongoose.Schema({
+         name: String,
+         email: String,
+         createdOn: Date
+    });
+    
+* 修改 schema 不需要重构数据库
+
+    ```
+    var userSchema = new mongoose.Schema({
+         name: String,
+         email: String,
+         createdOn: Date,
+         modifiedOn: Date,
+         lastLogin: Date
+    });
+
+* 设置缺省值
+
+    ```
+    createdOn: Date
+    等于
+    createdOn: { type: Date }
+    修改为
+    createdOn: { type: Date, default: Date.now }
+    defautl 为 js 保留字，最好
+    createdOn: { type: Date, 'default': Date.now }
+    ```
+    
+* 唯一值
+
+    ```
+    email: {type: String, unique:true}
+    ```
+    
+    * 插入不唯一值时，mongodb 返回 E11000 错误
+ 
+* 最后结果
+
+    ```
+    var userSchema = new mongoose.Schema({
+      name: String,
+      email: {type: String, unique:true},
+      createdOn: { type: Date, default: Date.now },
+      modifiedOn: Date,
+      lastLogin: Date
+    });
+    ```
+    
+    * 一个结果例子
+    
+        ```
+        { 
+          "__v" : 0,
+          "_id" : ObjectId("5126b7a1f8a44d1e32000001"),
+          "createdOn" : ISODate("2013-02-22T00:11:13.436Z"),
+          "email" : "simon@theholmesoffice.com",
+          "lastLogin" : ISODate("2013-04-03T12:54:42.734Z"),
+          "modifiedOn" : ISODate("2013-04-03T12:56:26.009Z"),
+          "name" : "Simon Holmes" 
+        }
+        ```
+        
+* "__v" 什么东西？
+    * mongoose 内部在建立文档时设置的版本号
+    * 为什么需要？假设需要存取一个数组元素，myArray[3]，但同时有人删除了 2，这时原始数据存储在 2 中，保存将会覆盖在新的3也就是原先的4中。__V 避免此情况出现。
+    
+* 定义项目 schema
+
+    ```
+    var projectSchema = new mongoose.Schema({
+         projectName: String,
+         createdOn: Date,
+         modifiedOn: { type: Date, default: Date.now },
+         createdBy: String,
+         tasks: String
+    });
+    ```
+ 
+### 定义模型
+* 模型是数据库中文档的1:1映射
+* 使用连接建立模型
+
+    ```
+    mongoose.model( 'User', userSchema );
+    adminConnection.model( 'User', userSchema );
+    ```
+
+* 模型实例
+
+    ```
+    var userOne = new User({ name: 'Simon' });
+    var userTwo = new User({ name: 'Sally' });
+    ```
+    
+* 同模型交互
+
+    ```
+    console.log(userOne.name); // 'Simon'
+    userOne.name = 'Simon Holmes';
+    console.log(userOne.name); // 'Simon Holmes'
+    
+    userTwo.save(function (err) {
+      if (err) return handleError(err);
+      // userTwo (Sally) is saved!
+    });
+    userOne.save(function (err) {
+      if (err) return handleError(err);
+      // userOne (Simon Holmes) is saved!
+    });
+    ```
+    
+* 查找单实例
+
+    ```
+    User.findOne({'name' : 'Sally', function(err,user) {
+       if(!err){
+         console.log(user);
+       } 
+    });
+    ```
+    
+* 查找多实例
+
+    ```
+    User.find({}, function(err, users) {
+      if(!err){
+        console.log(users);
+      }
+    });
+    ```
+    
+### 设置集合名字
+* 默认集合是模型的小写复数名
+
+    ```
+    mongoose.model( 'User', userSchema );
+    Collection： users
+    ```
+
+* 在 schema 中定义集合名
+
+    ```
+    var userSchema = new mongoose.Schema({
+         name: String,
+         email: {
+           type: String, unique:true
+         }
+    }, {
+         collection: 'myuserlist'
+    });
+    ```
+    
+* 在模型中定义集合名
+    
+    ```
+    mongoose.model( 'User', userSchema, 'myuserlist' );
+    ```
+    
+* model/db.js
+
+    ```
+    /**
+     *
+     * Created by zhangjinglin on 14-7-22.
+     */
+    
+    var mongoose = require('mongoose')
+    var dbURI = 'mongodb://localhost/MongoosePM'
+    mongoose.connect(dbURI)
+       
+    /* ********************************************
+     USER SCHEMA
+     ******************************************** */
+    var userSchema = new mongoose.Schema({
+      name: String,
+      email: {type: String, unique: true},
+      createOn: {type: Date, defaults: Date.now},
+      modifiedOn: Date,
+      lastLogin: Date
+    })
+    
+    mongoose.model('User', userSchema)
+    
+    /* ********************************************
+     PROJECT SCHEMA
+     ******************************************** */
+    var projectSchema = new mongoose.Schema({
+      projectName: String,
+      createOn: {type: Date, default: Date.now},
+      modifiedOn: Date,
+      createBy: String,
+      contributors: String,
+      tasks: String
+    })
+    
+    mongoose.model('Project', projectSchema)
+    ```
+        
+数据交互 - 入门
+-------------
+### 模型方法和实例方法
+* CRUD(Create, Read, Update, Delete)
+
+    ```
+    User.create
+    User.find
+    User.update
+    User.remove
+    ```
+
+### 设置项目
+* 代码结构
+    * app.js
+        
+        ```
+        /**
+         *
+         * Created by zhangjinglin on 14-7-22.
+         */
+        
+        var express = require('express')
+          , bodyParser = require('body-parser')
+          , db = require('./model/db')
+          , user = require('./route/user')
+          , project = require('./route/project')
+        
+        
+        var app = express()
+        
+        app.set('view engine', 'jade')
+        app.set('views', './views')
+        app.use(express.static('./public'))
+        
+        app.use(bodyParser.urlencoded())
+        
+        var userRoute = express.Router()
+        userRoute.get('/', user.index)
+        userRoute.route('/new').get(user.create).post(user.doCreate)
+        userRoute.route('/edit').get(user.edit).post(user.doEdit)
+        userRoute.route('/delete').get(user.confirmDelete).post(user.doDelete)
+        
+        app.use('/user', userRoute)
+        
+        app.route('/login').get(user.login).post(user.doLogin)
+        app.get('/logout', user.doLogout)
+        
+        var projectRoute = express.Router()
+        projectRoute.route('/new').get(project.create).post(project.doCreate)
+        projectRoute.get('/:id', project.displayInfo)
+        projectRoute.route('/edit/:id').get(project.edit).post(project.doEdit)
+        projectRoute.route('/delete/:id').get(project.confirmDelete).post(project.doDelete)
+        
+        app.use('/project', projectRoute)
+        
+        app.listen(3000)
+        ```
+        
+    * route/user.js
+    
+        ```
+        /**
+         *
+         * Created by zhangjinglin on 14-7-22.
+         */
+        
+        var mongoose = require('mongoose')
+        var User = mongoose.model('User')
+        
+        exports.index = function(req, res) {
+        
+        }
+        
+        exports.create = function(req, res) {
+          
+        }
+        
+        exports.doCreate = function(req, res) {
+        
+        }
+        
+        exports.edit = function(req, res) {
+        
+        }
+        
+        exports.doEdit = function(req, res) {
+        
+        }
+        
+        exports.confirmDelete = function(req, res) {
+        
+        }
+        
+        exports.doDelete = function(req, res) {
+        
+        }
+        
+        exports.login = function(req, res) {
+        
+        }
+        
+        exports.doLogin = function(req, res) {
+        
+        }
+        
+        exports.doLogout = function(req, res) {
+        
+        }
+        ```
+        
+    * route/project.js
+    
+        ```
+        /**
+         *
+         * Created by zhangjinglin on 14-7-22.
+         */
+        
+        var mongoose = require('mongoose')
+        var Project = mongoose.model('Project')
+        
+        exports.create = function(req, res) {
+          
+        }
+        
+        exports.doCreate = function(req, res) {
+          
+        }
+        
+        exports.displayInfo = function(req, res) {
+          
+        }
+        
+        exports.edit = function(req, res) {
+          
+        }
+        
+        exports.doEdit = function(req, res) {
+        
+        }
+        
+        exports.confirmDelete = function(req, res) {
+          
+        }
+        
+        exports.doDelete = function(req, res) {
+          
+        }
+        ```
+        
+    * views/layout.jade
+    
+        ```
+        //   Created by zhangjinglin on 14-7-22.
+        doctype html
+        html
+          head
+            title= title
+            link(rel='stylesheet', href='/css/style.css')
+          body
+            block content
+        ```
+        
+数据交互 - 新建
+-------------
+### 新建实例
+* 新建并设置数据
+
+    ```
+    var newUser = new User();
+    newUser.name = 'Simon Holmes';
+    
+    var newUser = new User({
+         name: 'Simon Holmes',
+         email: 'simon@theholmesoffice.com',
+         lastLogin : Date.now()
+    });
+
+    var newUser = new User({
+      email: 'simon@theholmesoffice.com',
+      lastLogin : Date.now()
+    });
+    newUser.name = 'Simon Holmes';
+    ```
+    
+### 保存实例
+
+    ```
+    newUser.save( function( err ){
+         if(!err){
+           console.log('User saved!');
+         }
+    });
+    ```
+  
+* 使用保存的数据
+
+    ```
+    newUser.save( function( err, user ){
+         if(!err){
+           console.log('Saved user name: ' + user.name);
+           console.log('_id of saved user: ' + user._id);
+         }
+    });
+    ```
+    
+### 建立同时保存数据
+
+    ```
+    var newUser = new User({
+         name: 'Simon Holmes',
+         email: 'simon@theholmesoffice.com',
+         lastLogin : Date.now()
+       }).save( function( err ){
+         if(!err){
+           console.log('User saved!');
+         }
+    });
+    
+    User.create({
+         name: 'Simon Holmes',
+         email: 'simon@theholmesoffice.com',
+         lastLogin : Date.now()
+       }, function( err, user ){
+         if(!err){
+           console.log('User saved!');
+           console.log('Saved user name: ' + user.name);
+           console.log('_id of saved user: ' + user._id);
+    } });
+    
+    
+### CRUD - Create
+* 添加 user-form.jade
+
+    ```
+    //    Created by zhangjinglin on 14-7-22.
+    extends layout
+    
+    block content
+      h1= title
+      form(id='frmUserProfile', method='post', action='')
+        lable(for='name') Name
+          input(name='name')
+        label(for='email') Email
+          input(name='email')
+        input(type='submit', value='Create')
+    ```
+    
+* 连接路由和视图
+
+    ```
+    exports.create = function(req, res) {
+      res.render('user-form', {title: 'Create user'})
+    }
+    
+    exports.doCreate = function(req, res) {
+      User.create({
+        name: req.body.name,
+        email: req.body.email,
+        modifiedOn: Date.now(),
+        lastLogin: Date.now()
+      }, function(err, user) {
+        if (!err) {
+          console.log('User created and saved: ' + user)
+        }
+      })
+    }
+    ```
+    
+    * 错误处理：例如，电子邮件地址存在
+    
+        ```
+        exports.doCreate = function(req, res) {
+          User.create({
+            name: req.body.name,
+            email: req.body.email,
+            modifiedOn: Date.now(),
+            lastLogin: Date.now()
+          }, function(err, user) {
+            if (err) {
+              console.log(err)
+              if (err.code == 11000) {
+                res.redirect('/user/new?exists=true')
+              } else {
+                res.redirect('/user/error=true')
+              }
+            } else {
+              console.log('User created and saved: ' + user)
+            }
+          })
+        }
+        ```
+        
+    * 建立用户 session
+    
+        ```
+        exports.doCreate = function(req, res) {
+          User.create({
+            name: req.body.name,
+            email: req.body.email,
+            modifiedOn: Date.now(),
+            lastLogin: Date.now()
+          }, function(err, user) {
+            if (err) {
+              console.log(err)
+              if (err.code == 11000) {
+                res.redirect('/user/new?exists=true')
+              } else {
+                res.redirect('/user/error=true')
+              }
+            } else {
+              console.log('User created and saved: ' + user)
+              req.session.user = {'name': user.name, 'email': user.email, '_id': user._id}
+              req.session.loggedIn = true
+              res.redirect('/user')
+            }
+          })
+        }
+        ```
+
+* user-page.jade
+
+    ```
+    //    Created by zhangjinglin on 14-7-22.
+    
+    extends layout
+    
+    block content
+      h1 Mongoose Project Management
+      h2= name
+      p Email: #{email}
+      h3 Actions
+      ul
+        li
+          a(href='/project/new') Create a new project
+        li
+          a(href='/user/edit') Edit user info
+        li
+          a(href='/user/delete') Delete #{name}
+        li
+          a(href='/logout') Logout #{name}
+    ```
+    
+* index
+   
+   ```
+   exports.index = function(req, res) {
+     if (req.session.loggedIn === true) {
+       res.render('user-page', {
+         title: req.session.user.name,
+         name: req.session.user.name,
+         email: req.session.user.email,
+         userId: req.session.user._id
+       })
+     } else {
+       res.redirect('/login')
+     }
+   }
+   ```
+   
+
+    
+
+        
+    
+    
 
 
 
