@@ -893,6 +893,7 @@ Schemas & Models
         
         var express = require('express')
           , bodyParser = require('body-parser')
+          , cookieSession = require('cookie-session')
           , db = require('./model/db')
           , user = require('./route/user')
           , project = require('./route/project')
@@ -904,7 +905,8 @@ Schemas & Models
         app.set('views', './views')
         app.use(express.static('./public'))
         
-        app.use(bodyParser.urlencoded())
+        app.use(bodyParser.urlencoded({extended: true}))
+        app.use(cookieSession({secret: 'zjl'}))
         
         var userRoute = express.Router()
         userRoute.get('/', user.index)
@@ -1212,6 +1214,117 @@ Schemas & Models
         li
           a(href='/logout') Logout #{name}
     ```
+
+* 对 Project 的访问必须是登录用户，修改 app.js
+
+    ```
+    projectRoute.use(function(req, res, next) {
+      if (req.session.loggedIn === true) {
+        next();
+      } else {
+        res.redirect('/login')
+      }
+    })
+    ```
+
+* project.js
+
+    ```
+    exports.create = function(req, res) {
+      res.render('project-form', {
+        title: 'Create Project',
+        userid: req.session.user._id,
+        userName: req.session.user.name
+      });
+    }
+    ```
+        
+* project-form.jade
+
+    ```
+    //   Created by zhangjinglin on 14-7-22.
+    
+    extends layout
+    
+    block content
+      h1= title
+      form(method="post", action="")
+        p Project owner: #{userName}
+        input(type="hidden", name="userid", value="#{userid}")
+        label(for="projectName") Project name
+          input(type="text", name="projectName")
+        br
+        label(for="tasks") Tasks
+          textarea(name="tasks")
+        br
+        input(type="submit", value="Create Project")
+    ```
+    
+* project.js
+    
+    ```
+    exports.doCreate = function(req, res) {
+      Project.create({
+        projectName: req.body.projectName,
+        createBy: req.body.userid,
+        createOn: Date.now(),
+        tasks: req.body.tasks
+      }, function(err, project) {
+        if (err) {
+          console.log(err);
+          res.redirect('/user?error=project');
+        } else {
+          console.log('Project created and saved: ' + project)
+          console.log('Project._id = ' + project._id)
+          res.redirect('/project/' + project._id)
+        }
+      })
+    }
+    
+    exports.displayInfo = function(req, res) {
+      if (req.params.id) {
+        Project.findById(req.params.id, function(err, project) {
+          if (err) {
+            console.log(err);
+            res.redirect('/user?404=project')
+          } else {
+            res.render('project-page', {
+              title: project.projectName,
+              projectName: project.projectName,
+              tasks: project.tasks,
+              createBy: project.createBy,
+              projectId: req.param.id
+            })
+          }
+        })
+      } else {
+        res.redirect('/user')
+      }
+    }
+    ```
+    
+* project-page.jade
+
+    ```
+    //   Created by zhangjinglin on 14-7-22.
+    extends layout
+    
+    block content
+      h1 Mongoose Project Management
+      h2= projectName
+      p Created by: #{createBy}
+      p Tasks: #{tasks}
+      h3 Actions
+      ul
+        li
+          a(href="/project/new") Create a new project
+        li
+          a(href="/project/edit/#{projectID}") Edit project info
+        li
+          a(href="/project/delete/#{projectID}") Delete #{projectName}
+        li
+          a(href="/user") My profile
+    ```
     
 * index
    
@@ -1230,7 +1343,256 @@ Schemas & Models
    }
    ```
    
+数据 - 读取，查询和查找
+-------------------
+### 查找数据
+* 使用 QueryBuilder
 
+    ```
+    var myQuery = User.find({'name' : 'Simon Holmes'});
+    myQuery.where('age').gt(18);
+    myQuery.sort('-lastLogin');
+    myQuery.select('_id name email');
+    myQuery.exec(function (err, users){
+       if (!err){
+         console.log(users); // output array of users found
+       } 
+    });
+    
+    ** chain method **
+    
+    User.find({'name' : 'Simon Holmes'})
+       .where('age').gt(18)
+       .sort('-lastLogin')
+       .select('_id name email')
+       .exec(function (err, users){
+         if (!err){
+           console.log(users); // output array of users found
+    ￼    } 
+    });
+    
+    组合也行
+    
+    var myQuery = User.find({'name' : 'Simon Holmes'})
+       .where('age').gt(18)
+       .sort('-lastLogin')
+       .select('_id name email');
+       // do some other operations
+       // and then...
+    myQuery.exec(function (err, users){
+      if (!err){
+        console.log(users); // output array of users found
+      }
+    });
+    
+    ```
+
+* 单查询操作
+
+    ```
+    Model.find(conditions, [fields], [options], [callback])
+    
+    User.find(
+      {'name' : 'Simon Holmes'}, // users called Simon Holmes
+      function (err, users){
+        if (!err){console.log(users);}
+    });
+    
+    User.find(
+      {'name' : 'Simon Holmes'}, // users called Simon Holmes
+      'name email', // returning just the name and email fields
+      function (err, users){
+        if (!err){console.log(users);}
+    });
+       
+    User.find(
+      {'name' : 'Simon Holmes'}, // users called Simon Holmes
+      null, // returning all fields in model
+      {sort : {lastLogin : -1}}, // sorted by lastLogin descending
+      function (err, users){
+        if (!err){console.log(users);}
+    });
+    ```
+    
+* 辅助方法
+    * Model.find(query) 返回匹配的数组
+    * Model.findOne(query) 第一个匹配的文档
+    * Model.findById(ObjectID) 返回指定的 OjectID 的文档
+    
+
+### CRUD - 读取数据
+* login-form.jade
+
+    ```
+    //   Created by zhangjinglin on 14-7-22.
+    extends layout
+    
+    block content
+      h1= title
+      form(method="post", action="")
+        label(for="Email") Email
+          input(type="email", name="Email")
+        input(type="submit", value="Login")
+        p Or new users can
+          a(href="/user/new") sign up
+    
+    
+    exports.login = function(req, res) {
+      res.render('login-form', {title: 'Log in'})
+    }
+    
+    exports.doLogin = function(req, res) {
+      if (req.body.email) {
+        User.findOne(
+          {email: req.body.email},
+          '_id name email',
+          function(err, user) {
+            if (!err) {
+              if (!user) {
+                res.redirect('/login?404=user')
+              } else {
+                req.session.user = {
+                  'name': user.name,
+                  'email': user.email,
+                  '_id': user._id
+                };
+                req.session.loggedIn = true;
+                console.log('Logged in user: ' + user)
+                res.redirect('/user')
+              }
+            } else {
+              res.redirect('/login?404=error')
+            }
+          }
+        )
+      } else {
+        res.redirect('/login?404=error')
+      }
+    }
+    ```
+    
+* index.jade
+
+    ```
+    //   Created by zhangjinglin on 14-7-22.
+    extends layout
+    
+    block content
+      ul
+        li
+          a(href='/login') Login
+        li
+          a(href='/user/new') Sign up
+
+    app.get('/', function(req, res) {
+      res.render('index')
+    })
+          
+* 返回 JSON to AJAX
+    * db.js
+    
+        ```
+        projectSchema.statics.findByUserId = function(userid, callback) {
+          this.find(
+            {createBy: userid},
+            '_id projectName',
+            {sort: 'modifiedOn'},
+            callback
+          )
+        }
+        ```
+        
+        
+    * app.js
+    
+        ```
+        projectRoute.get('/byuser/:userid', project.byUser)
+        ```
+    
+    *  project.js
+    
+        ```
+        exports.byUser = function(req, res) {
+          if (req.params.userid) {
+            Project.findByUserId(req.params.userid, function(err, projects) {
+                if (!err) {
+                  res.json(projects)
+                } else {
+                  res.json({status: 'error', error: 'Error finding projects'})
+                }
+            })
+          } else {
+            res.json({"status":"error", "error":"No user id supplied"});
+          }
+        }
+        ```
+    
+    * user-page.jade
+    
+        ```
+        //    Created by zhangjinglin on 14-7-22.
+        
+        extends layout
+        
+        block content
+          h1 Mongoose Project Management
+          h2= name
+          p Email: #{email}
+          h3 Actions
+          ul
+            li
+              a(href='/project/new') Create a new project
+            li
+              a(href='/user/edit') Edit user info
+            li
+              a(href='/user/delete') Delete #{name}
+            li
+              a(href='/logout') Logout #{name}
+        
+          h3 My projects
+          ul#myprojects
+            li loading....
+        
+          script(src='/js/jquery.js')
+          script.
+            var userId = "#{userId}";
+          script(src='/js/user.js')
+          ```
+          
+    * public/js/user.js
+    
+        ```
+        /**
+         *
+         * Created by zhangjinglin on 14-7-22.
+         */
+        
+        $(function() {
+          var output = '';
+          $.ajax('/project/byuser/' + userId, {
+            dataType: 'json',
+            error: function() {
+              console.log('ajax error :(')
+            },
+            success: function(data) {
+              if (data.length > 0) {
+                if (data.status && data.status === 'error') {
+                  output = '<li>Error: ' + data.error + '</li>'
+                } else {
+                  $(data).each(function(index, item) {
+                    output += '<li>'
+                    output += '<a href="/project/'  + item._id + '">' + item.projectName + '</a>'
+                    output += '</li>'
+                  })
+                  $('#myprojects').html(output)
+                }
+              }
+            }
+          })
+        })
+        ```
+        
+    
     
 
         
