@@ -459,4 +459,112 @@ Bindings & Observable
       owner: my.vm
     })
     ```
+ 
+### Observable Array
+* 跟踪数组中的对象（not their state）
+* 当下列情况产生时发出通知
+    * 添加
+    * 移除
+    
+* demo
+
+    ```
+    <div class="well">
+      <div class="page-header"><h1>Knockout: Observable Array</h1></div>
+      <div class="panel-body">
+        <span class="help-block"><span data-bind="text: products().length"></span> Products</span>
+        <select class="form-control" multiple
+                data-bind="options: products, selectedOptions: selectedProducts, optionsText: 'desc'"></select>
+        <div class="btn-group">
+          <button class="btn btn-default" data-bind="click: removeSelected, enable: selectedProducts().length > 0">移除</button>
+          <button class="btn btn-default" data-bind="click: sortProducts, enable: products().length > 1">排序</button>
+        </div>
+      </div>
+    </div>
+    
+    <script src="js/jquery.js"></script>
+    <script src="js/knockout.js"></script>
+    <script>
+      $(function() {
+        var photoPath = '/img/'
+    
+        var sampleData = [
+          {ModelId: 1, SalePrice: 1699, Photo: '1.jpg', ItemNumber: 'CE314', Description: '民谣吉他'},
+          {ModelId: 2, SalePrice: 2699, Photo: '2.jpg', ItemNumber: 'TY004', Description: '古典吉他'},
+          {ModelId: 3, SalePrice: 1499, Photo: '3.jpg', ItemNumber: 'PM345', Description: '电吉他'}
+        ];
+    
+        var Product = function() {
+          var self = this;
+          self.id = ko.observable()
+          self.salePrice = ko.observable()
+          self.photo = ko.observable()
+          self.itemNumber = ko.observable()
+          self.desc = ko.observable()
+          self.photoUrl = ko.computed(function() {
+            return photoPath + self.photo()
+          })
+        }
+    
+        var vm = {
+          products: ko.observableArray([]),
+    
+          selectedProducts: ko.observableArray([]),
+    
+          removeSelected: function() {
+            vm.products.removeAll(vm.selectedProducts())
+            vm.selectedProducts([])
+          },
+    
+          sortProducts: function() {
+            vm.products.sort(function(left, right) {
+              return left.desc() === right.desc() ? 0 : (left.desc() < right.desc() ? 1 : -1)
+            })
+          },
+    
+          load: function() {
+            $.each(sampleData, function(index, item) {
+              vm.products.push(
+                  new Product()
+                      .id(item.ModelId)
+                      .salePrice(item.SalePrice)
+                      .photo(item.Photo)
+                      .itemNumber(item.ItemNumber)
+                      .desc(item.Description)
+              )
+            })
+          }
+    
+        }
+    
+        vm.load()
+        ko.applyBindings(vm)
+      })
+    </script>
+    ```
+    
+### Observable Array Functions
+* destroy
+* destroyAll
+* indexOf
+* pop
+* push
+* remove
+* removeAll
+* reverse
+* shift
+* slice
+* sort
+* splice
+* unshift
+
+### Subscribing to changes
+* 注册修改通知
+* 当属性修改时执行一些动作
+
+    ```
+    vm.xxxxx.subscribe(function() {
+        // Do something
+    }
+    ```
     
