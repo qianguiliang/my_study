@@ -57,6 +57,8 @@ Sencha Touch
 #### 1.3.1 Containers
 * 可配置和灵活
     * 允许子组件停靠
+    
+![Alt text](http://github.com/zhangjinglin/my_study/Sencha Touch/1.png)
 #### 1.3.2 使用 Tab 控件控制 UI 
 * Sheets
 * Views
