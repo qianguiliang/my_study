@@ -1592,11 +1592,165 @@ Schemas & Models
         })
         ```
         
+数据 - 修改
+---------
+### 模型方法
+* update() 修改匹配文档
+* findOneAndUpdate() 
+* findByIdAndUpdate() 
+* 参数
+    * conditions
+    * update
+    * options
+    * callback
     
+### 三步法：查找-编辑-保存
+
+    ```
+    // 1: FIND the record
+    User.findOne(
+      {email : 'simon@theholmesoffice.com'},
+      function(err, user) {
+        if(!err){
+          // 2: EDIT the record
+          user.name = "Simon";
+          // 3: SAVE the record
+          user.save(function(err,user){
+            console.log('User saved:', user);
+          });
+        } 
+      };
+    );
+    ```    
+
+### CRUD - 编辑用户和项目
+* 跟踪用户登录，修改 lastLogin
+
+    ```
+    req.session.user = {
+      'name': user.name,
+      'email': user.email,
+      '_id': user._id
+    };
+    req.session.loggedIn = true;
+    console.log('Logged in user: ' + user)
+    User.update(
+      {_id: user._id},
+      {$set: {lastLogin: Date.now()}},
+      function() {
+        res.redirect('/user')
+      }
+    )
+    ```
+
+* 编辑当前用户
+    * user-form.jade
+    
+        ```
+        extends layout
+        
+        block content
+          h1= title
+          form(id='frmUserProfile', method='post', action='')
+            lable(for='name') Name
+              input(name='name', value='#{name}')
+            label(for='email') Email
+              input(name='email', value='#{email})
+            input(type='submit', value='#{buttonText}')
+        ```
+    
+    * user.js
+    
+        ```
+        exports.edit = function(req, res) {
+          if (req.session.loggedIn !== true) {
+            res.redirect('/login')
+          }
+          res.render('user-form', {
+            title: 'Edit profile',
+            _id: req.session.user._id,
+            name: req.session.user.name,
+            email: req.session.user.email,
+            buttonText: 'Save'
+          })
+        }
+        
+        exports.doEdit = function(req, res) {
+          if (req.session.user._id) {
+            User.findById(req.session.user._id,
+              function(err, user) {
+                if (err) {
+                  res.redirect('/user?error=finding')
+                }
+                user.name = req.body.name
+                user.email = req.body.email
+                user.modifiedOn = Date.now()
+                user.save(function(err) {
+                  if (!err) {
+                    req.session.user.name = req.body.name
+                    req.session.user.email = req.body.email
+                    res.redirect('/user')
+                  }
+                })
+              }
+            )
+          }
+        }
+        ```
+        
+数据 - 删除
+----------
+* remove()
+* findOneAndRemove()
+* findByIdAndRemove()
+
+* user-delete-form.jade
+
+    ```
+    //   Created by zhangjinglin on 14-7-23.
+    extends layout
+    
+    block content
+      h1= title
+      p #{name}, are you sure you want to permanently delete your account? The email address on this account is #{email}
+      form(ethod="post", action="")
+        input(type="hidden", name="_id", id="_id", value="#{_id}")
+        input(type="submit", value="Yes, please delete it!")
+      
+    
+    ```
+    
+* user.js
+
+    ```
+    exports.confirmDelete = function(req, res) {
+      res.render('user-delete-form', {
+        title: 'Delete account',
+        _id: req.session.user._id,
+        name: req.session.user.name,
+        email: req.session.user.email
+      })
+    }
+    
+    exports.doDelete = function(req, res) {
+      if (req.body._id) {
+        User.findByIdAndRemove(
+          req.body._id,
+          function (err, user) {
+            if(err){
+              console.log(err);
+              return res.redirect('/user?error=deleting');
+            }
+            console.log("User deleted:", user);
+            clearSession(req.session, function () {
+              res.redirect('/');
+            });
+          } );
+      }
+    }
+    ```
     
 
-        
-    
     
 
 
