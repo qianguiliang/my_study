@@ -185,7 +185,144 @@ Sencha Touch
               }
             })
             ```
-            
+ 
+布局
+---
+* fit
+    
+    ```coffee
+    Ext.application
+      launch: ->
+        Ext.define 'Zjl.st.FitDemo',
+          extend: 'Ext.Container'
+          xtype: 'fitdemo'
+          config:
+            fullscreen: true
+            style: 'background-color: darkgray'
+            layout:
+              type: 'fit'
+            items: [
+              xtype: 'component'
+              margin: 10
+              html: 'This componet is set to fit'
+              style: 'background-color: lightgray'
+            ]
+        Ext.create 'Zjl.st.FitDemo'
+    ```
+    
+* hbox
+
+    ```coffee
+    Ext.application
+      launch: ->
+        Ext.define 'Zjl.st.HBoxDemo',
+          extend: 'Ext.Container'
+          xtype: 'hboxdemo'
+          config:
+            fullscreen: true
+            defaults:
+              margin: 10
+            style: 'background-color: darkgray'
+            layout:
+              type: 'hbox'
+            items: [
+              xtype: 'component'
+              flex: 1
+              margin: 10
+              html: 'Flex 1'
+              style: 'background-color: pink'
+            ,
+              xtype: 'component'
+              flex: 3
+              margin: 10
+              html: 'Flex 3'
+              style: 'background-color: yellow'
+            ]
+        Ext.create 'Zjl.st.HBoxDemo'
+    ```
+    
+* vbox
+
+    ```coffee
+    Ext.application
+      launch: ->
+        Ext.define 'Zjl.st.VBoxDemo',
+          extend: 'Ext.Container'
+          config:
+            fullscreen: true
+            defaults:
+              margin: 10
+            style: 'background-color: darkgray'
+            layout:
+              type: 'vbox'
+            items: [
+              xtype: 'component'
+              flex: 1
+              margin: 10
+              html: 'Flex 1'
+              style: 'background-color: pink'
+            ,
+              xtype: 'component'
+              flex: 3
+              margin: 10
+              html: 'Flex 3'
+              style: 'background-color: yellow'
+            ]
+        Ext.create 'Zjl.st.VBoxDemo'
+    ```
+    
+* card
+
+    ```coffee
+    Ext.application
+      launch: ->
+        Ext.define 'Zjl.st.CardDemo',
+          extend: 'Ext.Container'
+          config:
+            fullscreen: true
+            defaults:
+              margin: 10
+            style: 'background-color: darkgray'
+            layout:
+              type: 'card'
+            items: [
+              xtype: 'segmentedbutton'
+              docked: 'top'
+              items: [
+                text: 'First'
+                pressed: true
+              ,
+                text: 'Second'
+              ,
+                text: 'Third'
+              ]
+              listeners:
+                toggle: (segmentedbutton, button, isPressed, eOpts) ->
+                  if isPressed
+                    container = segmentedbutton.getParent()
+                    txt = button.getText()
+                    selectedComponent = container.getComponent button.getText()
+                    container.setActiveItem selectedComponent
+            ,
+              xtype: 'component',
+              itemId: 'First'
+              html: 'First Component'
+              style: 'background-color: pink'
+            ,
+              xtype: 'component',
+              itemId: 'Second'
+              html: 'Second Component'
+              style: 'background-color: yellow'
+            ,
+              xtype: 'component',
+              itemId: 'Third'
+              html: 'Third Component'
+              style: 'background-color: cyan'
+            ]
+        Ext.create 'Zjl.st.CardDemo'
+    ```
+    
+    
  
 
                
