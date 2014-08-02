@@ -322,6 +322,189 @@ Sencha Touch
         Ext.create 'Zjl.st.CardDemo'
     ```
     
+* Docking
+   
+   ```coffee
+   Ext.application
+     launch: ->
+       Ext.define 'Zjl.st.DockingDemo',
+         extend: 'Ext.Container'
+         config:
+           fullscreen: true
+           defaults:
+             margin: 5
+           layout:
+             type: 'fit'
+           items: [
+             xtype: 'component'
+             docked: 'top'
+             html: 'Docking: Top'
+             style: 'background-color: pink'
+           ,
+             xtype: 'component'
+             docked: 'left'
+             html: 'Docking: left'
+             style: 'background-color: lightblue'
+           ,
+             xtype: 'component'
+             docked: 'right'
+             html: 'Docking: right'
+             style: 'background-color: lightgreen'
+           ,
+             xtype: 'component'
+             docked: 'bottom'
+             html: 'Docking: bottom'
+             style: 'background-color: cyan'
+           ,
+             xtype: 'component'
+             docked: 'top'
+             html: 'Centered'
+             style: 'background-color: lightgray'
+           ]
+       Ext.create 'Zjl.st.DockingDemo'
+   ```
+   
+* Template
+
+    ```coffee
+    Ext.application
+      launch: ->
+        Ext.define 'Zjl.st.TemplatesDemo',
+          extend: 'Ext.Container'
+          config:
+            fullscreen: true
+            scrollable: true
+            data:
+              countries: [
+                country: 'Argentina'
+                flagColors: [
+                  'light blue'
+                  'white'
+                ]
+              ,
+                country: 'Switzerland'
+                flagColors: [
+                  'red'
+                  'white'
+                ]
+              ,
+                country: 'France'
+                flagColors: [
+                  'blue'
+                  'white'
+                  'red'
+                ]
+              ]
+            tpl: Ext.create 'Ext.XTemplate',
+              '<tpl for="countries"',
+              '<p>{#}. {country}: {flagColors}</p>',
+              '</tpl>'
+        Ext.create 'Zjl.st.TemplatesDemo'
+    ```
+    
+组件
+----
+* 按钮
+    * Ext.Button
+    * xtype: button
+
+    ```coffee
+    Ext.application
+      launch: ->
+        Ext.define 'Zjl.st.ButtonDemo',
+          extend: 'Ext.Container'
+          config:
+            fullscreen: true
+            items: [
+              xtype: 'button'
+              text: 'Replay'
+              badgeText: '42'
+              ui: 'normal'
+              iconCls: 'reply'
+              iconMask: true
+              iconAlign: 'top'
+              margin: '50 0 0 50'
+              width: 100
+              heigh: 100
+              listeners:
+                tap: (button, e, eOpts) ->
+                  Ext.Msg.alert 'INFO', 'You clicked me'
+            ]
+    
+        Ext.create 'Zjl.st.ButtonDemo'
+    ```
+    
+* Label
+    * Ext.Label
+    * xtype: label
+
+    ```coffee
+    Ext.application
+      launch: ->
+        Ext.define 'Zjl.st.LabelDemo',
+          extend: 'Ext.Container'
+          config:
+            fullscreen: true
+            items: [
+              xtype: 'label'
+              html: '<h1>Hello</h1><h3>Welcome to Sencha Touch</h3>'
+              styleHtmlContent: true
+            ]
+    
+        Ext.create 'Zjl.st.LabelDemo'
+    ```
+    
+容器
+----
+
+* Carousel
+    * Ext.carousel.Carousel
+    * xtype: carousel
+
+    ```coffee
+    Ext.application
+      launch: ->
+        Ext.define 'Zjl.st.CarouselDemo',
+          extend: 'Ext.carousel.Carousel'
+          config:
+            fullscreen: true
+            direction: 'vertical'
+            items: [
+              html: 'red'
+              style: 'background-color: pink'
+            ,
+              html: 'green'
+              style: 'background-color: lightgreen'
+            ,
+              html: 'blue'
+              style: 'background-color: cyan'
+            ]
+        Ext.create 'Zjl.st.CarouselDemo'
+    ```
+    
+* Navigation View
+    * Ext.NavigationView
+    * xtype: navigationview
+    
+    ```coffee
+    Ext.application
+      launch: ->
+        view = Ext.create 'Ext.NavigationView',
+          fullscreen: true
+          items: [
+            title: 'First'
+            items: [
+              xtype: 'button'
+              text: 'Push a new View'
+              handler: ->
+                view.push
+                  title: 'Second'
+                  html: 'Second View'
+            ]
+          ]
+    
+        Ext.Viewport.add view
+    ```
     
  
 
