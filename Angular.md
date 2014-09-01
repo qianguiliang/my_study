@@ -44,14 +44,58 @@ Organization your code
 ### File Organization
 
 * Angular Seed
-
-    App
-        js
-            controllers.js
-            services.js
-            filters.js
-            directives.js
-        css
-        partials
-        img
-        lib
+    
+    * App
+    * App/js
+    * App/js/controllers.js
+    * App/js/services.js
+    * App/js/filters.js
+    * App/js/directives.js
+    * App/css
+    * App/partials
+    * App/img
+    * App/lib
+    
+    
+    * App
+    * App/js
+    * App/js/controller1.js
+    * App/js/controller2.js
+    * App/js/service1.js
+    * App/js/service2.js
+    * etc ...
+    * App/css
+    * App/partials
+    * App/img
+    * App/lib
+    
+    * App
+    * App/js
+    * App/js/controllers/controller1.js
+    * App/js/controllers/controller2.js
+    * App/js/services/service1.js
+    * App/js/services/service2.js
+    * App/filters/filter1.js
+    * App/directives/directive1.js
+    * App/directives/directive2.js
+    * App/css
+    * App/partials
+    * App/partials/view1.html
+    * App/partials/directive2View.html
+    * App/img
+    * App/lib
+        
+    * App
+    * App/authentication
+    * App/authentication/authCtrl.js
+    * App/authentication/authSvc.js
+    * App/authentication/authDirective.js
+    * App/authentication/authDirective.html
+    * App/authentication/auth.html
+    * App/authentication/authFilter.js
+    * App/schedule
+    * App/schedule/scheduleCtrl.js
+    * App/schedule/scheduleSvc.js
+    * App/schedule/schedule.html
+    * App/css ...
+    
